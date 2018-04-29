@@ -55,7 +55,7 @@ if __name__ == '__main__':
     
     # Read input and select function
     input: str = is_hex(sys.stdin.read().translate({ ord(' '): None, ord('\n'): None, ord('\\'): None, ord('x'): None }))
-    print("Converting ", len(input), " bytes:", sep="")
+    print("Converting ", round(len(input) / 2), " bytes:", sep="")
     {
         Mode.HEX_LITERAL: mode_hex_literal,
         Mode.HEX: mode_hex,
