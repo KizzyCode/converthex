@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+import sys
+import base64
+from enum import Enum
+
+
+class Mode(Enum):
+    HEX_LITERAL = 1
+    HEX = 2
+    BASE64 = 3
+
+
+def is_hex(input: str) -> str:
+    if len(input) % 2 != 0:
+        raise ValueError("Input is not a valid hex-string")
+
+    for char in input.lower():
+        if not char in "0123456789abcdefABCDEF":
+            raise ValueError("Input is not a valid hex-string")
+    
+    return input
+
+
+def mode_hex_literal(input: str):
+    for i in range(0, len(input), 2):
+        print("\\x", input[i:(i + 2)], sep="", end="")
+    print()
+
+
+def mode_hex(input: str):
+    print(input)
+
+
+def mode_base64(input: str):
+    binary: bytes = bytes.fromhex(input)
+    print(base64.b64encode(binary).decode("ascii"))
+
+
+if __name__ == '__main__':
+    # Parse args
+    mode: Mode = Mode.HEX_LITERAL
+    for arg in sys.argv[1:]:
+        if arg.startswith("--mode="):
+            mode = { "hex": Mode.HEX, "hex-literal": Mode.HEX_LITERAL, "base64": Mode.BASE64 }.get(arg[len("--mode="):])
+        else:
+            raise ValueError("Invalid argument " + arg)
+    
+    # Validate args
+    if mode == None:
+        print("Invalid mode. Valid values are:")
+        print("    \"hex-literal\" (default): Converts the hex input to a hex-string-literal (e.g. \"\\x54\\x65\\x73\\x74\\x6F\\x6C\\x6F\\x70\\x65\")")
+        print("    \"hex\": Converts the hex input to a hex-string (without whitespaces etc.)")
+        print("    \"base64\": Converts the hex input to bytes and encodes them using base64 (e.g. \"VGVzdG9sb3Bl\")")
+        exit(1)
+    
+    # Read input and select function
+    input: str = is_hex(sys.stdin.read().translate({ ord(' '): None, ord('\n'): None, ord('\\'): None, ord('x'): None }))
+    {
+        Mode.HEX_LITERAL: mode_hex_literal,
+        Mode.HEX: mode_hex,
+        Mode.BASE64: mode_base64
+    }.get(mode)(input)
